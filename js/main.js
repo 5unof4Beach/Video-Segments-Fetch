@@ -1,8 +1,17 @@
 var video = document.querySelector("video");
 
-var assetURL = "https://aeda-113-23-76-238.ap.ngrok.io/videos/1f.mp4 ";
-var assetURL2 = "https://aeda-113-23-76-238.ap.ngrok.io/videos/2f.mp4 ";
-var assetURL3 = "https://aeda-113-23-76-238.ap.ngrok.io/videos/7f.mp4 ";
+var assetURL1 = "http://127.0.0.1:5500/videos/1f.mp4 ";
+var assetURL2 = "http://127.0.0.1:5500/videos/2f.mp4 ";
+var assetURL3 = "http://127.0.0.1:5500/videos/3f.mp4 ";
+var assetURL4 = "http://127.0.0.1:5500/videos/4f.mp4 ";
+var assetURL5 = "http://127.0.0.1:5500/videos/5f.mp4 ";
+var assetURL6 = "http://127.0.0.1:5500/videos/6f.mp4 ";
+var assetURL7 = "http://127.0.0.1:5500/videos/7f.mp4 ";
+var assetURL8 = "http://127.0.0.1:5500/videos/8f.mp4 ";
+var assetURL9 = "http://127.0.0.1:5500/videos/9f.mp4 ";
+var assetURL10 = "http://127.0.0.1:5500/videos/10f.mp4 ";
+// var assetURL = "https://d1b2-113-23-76-238.ap.ngrok.io/videos/";
+var assetURL = "http://127.0.0.1:5500/videos/";
 
 // var assetURL = "http://127.0.0.1:5500/videos/1f.mp4 ";
 // var assetURL2 = "http://127.0.0.1:5500/videos/2f.mp4 ";
@@ -26,46 +35,50 @@ function sourceOpen() {
   //Vì timestamp các segment giống nhau nên phải đổi mode = sequence;
   sourceBuffer.mode = "sequence";
 
-  
 
-  // console.log(fetchSegment(assetURL, sourceBuffer))
-  fetchSegment(assetURL, sourceBuffer)
-    .then((buf) => {
-      sourceBuffer.appendBuffer(buf);
-    })
-    .then(() => {
-      return fetchSegment(assetURL2, sourceBuffer);
-    })
-    .then((buf2) => {
-      sourceBuffer.appendBuffer(buf2);
-    })
-    .then(() => {
-      return fetchSegment(assetURL3, sourceBuffer);
-    })
-    .then((buf3) => {
-      sourceBuffer.appendBuffer(buf3);
-    })
+  async function a(vids) {
+    let i = 1;
+    while (i <= vids) {
+      
+      await fetchSegment(assetURL + i + "f.mp4").then(async (buf) => {
+        console.log("appending vid: " + i);
+        await appendBufferAsync(sourceBuffer, buf);
+      });
+
+      if (i == vids) {
+        mediaSource.endOfStream;
+        break;
+      }
+
+      i++;
+    }
+  }
+
+  a(10);
+
 }
 
-function fetchSegment(url, sourceBuffer) {
+function fetchSegment(url) {
   console.log(url);
 
-  const loadBuffer = new Promise((resolve, reject) => {
-    sourceBuffer.onupdateend = () => {
-      console.log('done updating')
-      resolve('end');
-    };
-
-    if(!sourceBuffer.updating){
-      resolve('!update')
-      console.log("not updating")
-    }
-  });
-
-  console.log(loadBuffer);
-  return loadBuffer.then(() => {
-    return fetch(url).then((response) => {
-      return response.arrayBuffer();
-    });
+  return fetch(url).then((response) => {
+    return response.arrayBuffer();
   });
 }
+
+function appendBufferAsync(sourceBuffer, arrayBuffer) {
+  sourceBuffer.appendBuffer(arrayBuffer);
+
+  return new Promise((resolve, reject) => {
+    if (!sourceBuffer.updating) {
+      resolve("!update");
+      console.log("not updating");
+    }
+
+    sourceBuffer.onupdateend = () => {
+      console.log("done updating");
+      resolve("end");
+    };
+  });
+}
+
